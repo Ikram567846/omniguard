@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OmniGuard QuickSupport - গ্রাহক সহায়তা কেন্দ্র</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      background: #0b1120;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 1rem;
+    }
+    .client-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 2rem;
+      max-width: 440px;
+      width: 100%;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 0.9rem;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      color: #94a3b8;
+    }
+    .status-pill.online {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: #10b981;
+      color: #34d399;
+    }
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #ef4444;
+    }
+    .status-pill.online .status-dot {
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+    }
+    .active-session-box {
+      display: none;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid #ef4444;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-top: 1rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="client-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <span style="font-size: 1.5rem;">🛡️</span>
+        <div>
+          <h2 style="font-size: 1.15rem; font-weight: 700; color: #fff;">OmniGuard QuickSupport</h2>
+          <p style="font-size: 0.75rem; color: #94a3b8;">গ্রাহক রিমোট সহায়তা ক্লায়েন্ট</p>
+        </div>
+      </div>
+      <div class="status-pill" id="clientStatusBadge">
+        <div class="status-dot"></div>
+        <span id="clientStatusText">সংযোগ হচ্ছে...</span>
+      </div>
+    </div>
+
+    <p style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 1.5rem; line-height: 1.4;">
+      আপনার কম্পিউটার বা ফোনে দূর থেকে টেকনিশিয়ান সহায়তা নিতে নিচের <strong>আইডি (ID)</strong> এবং <strong>পাসওয়ার্ড (Password)</strong> সহায়তা প্রদানকারীকে প্রদান করুন।
+    </p>
+
+    <div class="form-group">
+      <label class="form-label" style="color: #38bdf8;">আপনার আইডি (YOUR ID - 9 DIGIT)</label>
+      <div style="display: flex; gap: 0.5rem; align-items: center;">
+        <div id="custDeviceId" class="display-id" style="flex: 1; font-size: 1.5rem; color: #38bdf8; text-align: center;">--- --- ---</div>
+        <button id="btnCopyId" class="btn btn-secondary" style="width: auto; padding: 0.7rem 0.9rem;" title="কপি করুন">📋</button>
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-top: 0.75rem;">
+      <label class="form-label" style="color: #34d399;">সহজ পেয়ারিং পিন (EASY PIN - 6 DIGIT)</label>
+      <div style="display: flex; gap: 0.5rem; align-items: center;">
+        <div id="custPairingPin" class="display-id" style="flex: 1; font-size: 1.4rem; color: #34d399; text-align: center;">--- ---</div>
+        <button id="btnCopyPin" class="btn btn-secondary" style="width: auto; padding: 0.7rem 0.9rem;" title="পিন কপি করুন">📋</button>
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-top: 1rem;">
+      <label class="form-label" style="color: #38bdf8;">ওয়ান-টাইম পাসওয়ার্ড (PASSWORD)</label>
+      <div style="display: flex; gap: 0.5rem; align-items: center;">
+        <input type="text" id="custPassword" class="input-box" readonly value="------" style="flex: 1; font-size: 1.3rem; text-align: center; font-family: monospace;">
+        <button id="btnRefreshPass" class="btn btn-secondary" style="width: auto; padding: 0.7rem 0.9rem;" title="নতুন পাসওয়ার্ড">🔄</button>
+      </div>
+    </div>
+
+    <div style="margin-top: 1.5rem; background: #0f172a; padding: 0.85rem; border-radius: 6px; border: 1px solid #334155;">
+      <label style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.85rem; cursor: pointer; color: #cbd5e1;">
+        <input type="checkbox" id="chkAllowControl" checked> মাউস ও কিবোর্ড সরাসরি নিয়ন্ত্রণ অনুমোদন করুন
+      </label>
+    </div>
+
+    <!-- Incoming Request Approval Box -->
+    <div id="incomingRequestBox" style="display: none; background: rgba(59, 130, 246, 0.15); border: 2px solid #3b82f6; border-radius: 8px; padding: 1rem; margin-top: 1rem; text-align: center;">
+      <div style="color: #93c5fd; font-weight: 700; font-size: 0.95rem; margin-bottom: 0.35rem;">🔔 টেকনিশিয়ান যুক্ত হতে চাচ্ছেন</div>
+      <div id="incomingAgentInfo" style="font-size: 0.8rem; color: #cbd5e1; margin-bottom: 0.85rem;">টেকনিশিয়ান আপনার কম্পিউটার স্ক্রিন দেখতে চান। নিচের বাটনে ক্লিক করে অনুমোদন দিন।</div>
+      <button id="btnAcceptScreenShare" class="btn btn-primary" style="font-size: 0.95rem; padding: 0.65rem 1rem; margin-bottom: 0.5rem; background: #10b981; border: none; font-weight: 700;">🖥️ অনুমোদন করুন ও স্ক্রিন শেয়ার করুন</button>
+      <button id="btnRejectSession" class="btn btn-secondary" style="font-size: 0.8rem; padding: 0.4rem 0.8rem; width: auto;">বাতিল করুন</button>
+    </div>
+
+    <!-- Active Remote Session Alert -->
+    <div id="activeSessionBox" class="active-session-box">
+      <div style="color: #f87171; font-weight: 700; font-size: 0.9rem; margin-bottom: 0.35rem;">⚠️ রিমোট সেশন চলছে!</div>
+      <div id="sessionAgentInfo" style="font-size: 0.8rem; color: #cbd5e1; margin-bottom: 0.75rem;">টেকনিশিয়ান আপনার স্ক্রিন পর্যবেক্ষণ করছেন।</div>
+      <button id="btnDisconnectSession" class="btn btn-danger" style="font-size: 0.85rem; padding: 0.5rem;">সংযোগ বিচ্ছিন্ন করুন (End Session)</button>
+    </div>
+
+    <div style="margin-top: 1.5rem; text-align: center; font-size: 0.75rem; color: #64748b;">
+      OmniGuard Secure Remote Control Engine • 100% Encrypted WebRTC
+    </div>
+  </div>
+
+  <script src="customer.js"></script>
+</body>
+</html>

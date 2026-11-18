@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OmniGuard & RemoteConnect - Unified Console</title>
+  <link rel="stylesheet" href="styles.css">
+  <!-- OpenStreetMap Leaflet Engine -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+</head>
+<body>
+
+  <header>
+    <div class="logo-area">
+      <span class="logo-icon">🛡️</span>
+      <div>
+        <div class="logo-title">OmniGuard & RemoteConnect</div>
+        <div style="font-size: 0.75rem; color: var(--text-muted);">Unified Remote Desktop & Smart Surveillance Hub</div>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 0.75rem;">
+      <span id="licenseBadge" class="badge" style="background: #6366f1; cursor: pointer;" title="Commercial License Status">🔑 Community Free</span>
+      <span id="connectionBadge" class="badge">Connecting...</span>
+      <a href="customer.html" target="_blank" style="color: #38bdf8; font-size: 0.85rem; text-decoration: none; border: 1px solid #38bdf8; padding: 0.3rem 0.6rem; border-radius: 6px;">👤 Customer QuickSupport ↗</a>
+      <a href="grid.html" target="_blank" style="color: #10b981; font-size: 0.85rem; text-decoration: none; border: 1px solid #10b981; padding: 0.3rem 0.6rem; border-radius: 6px;">🔲 4-Way CCTV Grid ↗</a>
+      <a href="host.html" target="_blank" style="color: var(--accent); font-size: 0.85rem; text-decoration: none; border: 1px solid var(--accent); padding: 0.3rem 0.6rem; border-radius: 6px;">Open Camera / Host Node ↗</a>
+    </div>
+  </header>
+
+  <div class="container" id="mainDashboard">
+    <div class="grid-2">
+      
+      <!-- Panel 1: Allow Control / Host Info -->
+      <div class="card">
+        <div class="card-title">
+          <span>🖥️</span> Allow Remote Control / Surveillance
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+          Share your ID and Password with your partner or another device to allow remote screen access or camera monitoring.
+        </p>
+
+        <div class="form-group">
+          <label class="form-label">YOUR DEVICE ID</label>
+          <div id="localDeviceId" class="display-id">--- --- ---</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">DYNAMIC PASSWORD (AUTO-GENERATED)</label>
+          <input type="text" id="localPassword" class="input-box" readonly value="------">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">🔒 CUSTOM UNATTENDED MASTER PASSWORD (PERMANENT)</label>
+          <div style="display: flex; gap: 0.5rem;">
+            <input type="text" id="unattendedPasswordInput" class="input-box" placeholder="Set or Generate permanent password" style="font-size: 0.95rem;">
+            <button id="btnGenUnattended" class="btn btn-secondary" style="width: auto; padding: 0.5rem 0.85rem; white-space: nowrap;" title="Generate strong random password">🎲 Gen</button>
+            <button id="btnSaveUnattended" class="btn btn-primary" style="width: auto; padding: 0.5rem 1rem;">Save</button>
+          </div>
+          <small id="unattendedMsg" style="color: var(--success); font-size: 0.75rem; display: none;">Saved permanently!</small>
+        </div>
+
+        <div class="form-group" style="margin-top: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+            <label class="form-label" style="margin: 0;">🔑 COMMERCIAL LICENSE KEY</label>
+            <button id="btnToggleGenerator" style="background: none; border: none; color: #60a5fa; font-size: 0.8rem; cursor: pointer; text-decoration: underline;">+ Generate New Key</button>
+          </div>
+          <div style="display: flex; gap: 0.5rem;">
+            <input type="text" id="licenseKeyInput" class="input-box" placeholder="e.g. OMNI-PRO-2027-88A1-94F2" style="font-size: 0.9rem; text-transform: uppercase;">
+            <button id="btnActivateLicense" class="btn btn-primary" style="width: auto; padding: 0.5rem 1rem;">Activate</button>
+          </div>
+          <small id="licenseMsg" style="color: var(--text-muted); font-size: 0.75rem; display: block; margin-top: 0.25rem;">For commercial support & multi-device quotas.</small>
+
+          <!-- Collapsible Key Generator Tool -->
+          <div id="keyGeneratorBox" style="display: none; background: #0b1329; border: 1px dashed #6366f1; border-radius: 8px; padding: 0.75rem; margin-top: 0.75rem;">
+            <div style="font-size: 0.8rem; font-weight: 700; color: #818cf8; margin-bottom: 0.5rem;">🛠️ OFFICIAL COMMERCIAL KEY GENERATOR</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
+              <div>
+                <label style="font-size: 0.75rem; color: var(--text-muted);">Tier:</label>
+                <select id="genTier" class="input-box" style="padding: 0.35rem; font-size: 0.8rem;">
+                  <option value="PROFESSIONAL">Professional (10 Devices)</option>
+                  <option value="ENTERPRISE">Enterprise (100 Devices)</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size: 0.75rem; color: var(--text-muted);">Validity:</label>
+                <select id="genYears" class="input-box" style="padding: 0.35rem; font-size: 0.8rem;">
+                  <option value="1">1 Year</option>
+                  <option value="2">2 Years</option>
+                  <option value="5">5 Years</option>
+                </select>
+              </div>
+            </div>
+            <button id="btnRunGenerator" class="btn btn-secondary" style="font-size: 0.8rem; padding: 0.4rem;">Generate Official Key</button>
+            <div id="generatedKeyResult" style="margin-top: 0.5rem; font-family: monospace; font-size: 0.85rem; color: #34d399; font-weight: bold; word-break: break-all;"></div>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 1rem;">
+          <label class="form-label">⚙️ PRIVACY & DISGUISE PREFERENCE</label>
+          <div style="display: flex; gap: 0.5rem; font-size: 0.85rem; color: var(--text-muted);">
+            <label style="display: flex; align-items: center; gap: 0.35rem; cursor: pointer;">
+              <input type="radio" name="stealthPref" value="TRANSPARENT" checked> Transparent Banner (Commercial)
+            </label>
+            <label style="display: flex; align-items: center; gap: 0.35rem; cursor: pointer;">
+              <input type="radio" name="stealthPref" value="CLOCK"> Digital Clock Disguise
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 2: Control Remote Partner & Saved Fleet Book -->
+      <div class="card">
+        <div class="card-title" style="justify-content: space-between;">
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span>🎮</span> Control Remote Partner / View Camera
+          </div>
+          <button id="btnToggleFleetBook" style="background: none; border: 1px solid #38bdf8; color: #38bdf8; font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 4px; cursor: pointer;">📖 Saved Fleet Book</button>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+          Enter the Partner's 9-digit Device ID (or 6-digit PIN) to connect, or select from your saved fleet.
+        </p>
+
+        <!-- Direct Connect Inputs -->
+        <div id="directConnectForm">
+          <div class="form-group">
+            <label class="form-label">PARTNER ID OR PAIRING PIN</label>
+            <input type="text" id="partnerIdInput" class="input-box" placeholder="e.g. 589 927 936 or 6-digit PIN" style="font-size: 1.2rem; font-family: monospace;">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">PASSWORD</label>
+            <input type="password" id="partnerPasswordInput" class="input-box" placeholder="Dynamic or Permanent Master Password" style="font-size: 1.1rem;">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">SESSION MODE</label>
+            <select id="sessionMode" class="input-box" style="font-size: 0.95rem;">
+              <option value="FULL_CONTROL">Full Remote Desktop Control (Mouse & Keyboard)</option>
+              <option value="CAMERA_SURVEILLANCE">Smart IP Camera & Walkie-Talkie (Front/Back Cam)</option>
+              <option value="FILE_TRANSFER">File Transfer Only</option>
+            </select>
+          </div>
+
+          <div style="display: flex; gap: 0.5rem; margin-top: 1.25rem;">
+            <button id="btnConnect" class="btn btn-primary" style="font-size: 1.05rem; padding: 0.85rem; flex: 2;">
+              ⚡ Connect to Partner
+            </button>
+            <button id="btnSaveToFleet" class="btn btn-secondary" style="font-size: 0.85rem; padding: 0.85rem; flex: 1;" title="Save to Address Book">
+              ⭐ Save Device
+            </button>
+          </div>
+        </div>
+
+        <!-- Saved Fleet Book Section (Collapsible) -->
+        <div id="fleetBookSection" style="display: none; background: #0c1427; border: 1px solid #1e293b; border-radius: 8px; padding: 0.75rem; margin-top: 1rem;">
+          <div style="font-size: 0.85rem; font-weight: 700; color: #38bdf8; margin-bottom: 0.5rem; display: flex; justify-content: space-between;">
+            <span>⭐ SAVED FLEET & PARTNERS</span>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">1-Click Instant Connect</span>
+          </div>
+          <div id="fleetList" style="display: flex; flex-direction: column; gap: 0.4rem; max-height: 180px; overflow-y: auto;">
+            <!-- Populated by JavaScript -->
+          </div>
+        </div>
+
+        <div style="margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+          <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.5rem;">QUICK ACCESS SHORTCUTS:</div>
+          <div style="display: flex; gap: 0.5rem;">
+            <a href="grid.html" class="btn btn-secondary" style="font-size: 0.8rem; padding: 0.5rem; text-decoration: none;">🔲 4-Way Fleet Grid</a>
+            <a href="host.html" class="btn btn-secondary" style="font-size: 0.8rem; padding: 0.5rem; text-decoration: none;">📷 Camera Broadcaster</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- In-Session Viewport (Launched on WebRTC Connection) -->
+  <div class="session-container" id="sessionContainer">
+    <div class="toolbar">
+      <div class="toolbar-group">
+        <span style="font-weight: 700; color: #60a5fa;" id="sessionPartnerId">Target: ---</span>
+        <button id="btnSwitchSide" class="tool-btn" title="Swap Control Side">🔄 Switch Side</button>
+        <button id="btnBlankScreen" class="tool-btn" title="Blank Host Screen for Privacy">⬛ Blank Screen</button>
+        <button id="btnToggleCam" class="tool-btn" title="Toggle Front/Rear Camera">📷 Switch Cam</button>
+        <button id="btnToggleTorch" class="tool-btn" title="Toggle Phone Flashlight">🔦 Torch</button>
+        <button id="btnNightVision" class="tool-btn" title="Digital Low-Light Night Vision">🌙 Night Vision</button>
+        <button id="btnTwoWayAudio" class="tool-btn" title="Walkie-Talkie Audio">🔊 Audio</button>
+        <button id="btnRemoteBuzz" class="tool-btn" title="Trigger Loud Buzz Siren">🚨 Siren</button>
+      </div>
+      <div class="toolbar-group">
+        <button id="btnRecordDvr" class="tool-btn" title="Record Screen/Camera to Disk">📹 Record DVR</button>
+        <button id="btnSnapshot" class="tool-btn" title="Capture Snapshot Photo">📸 Snapshot</button>
+        <button id="btnViewOnly" class="tool-btn" title="Lock Remote Input">👁️ View-Only</button>
+        <button id="btnFileTransfer" class="tool-btn">📁 File</button>
+        <input type="file" id="fileInput" style="display: none;">
+        <button id="btnGpsToggle" class="tool-btn">📍 GPS Map</button>
+        <button id="btnChatToggle" class="tool-btn">💬 Chat</button>
+        <span id="sessionBatteryPill" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; background: #1e293b; border-radius: 4px; color: #34d399; font-family: monospace;">🔋 100%</span>
+        <button id="btnEndSession" class="tool-btn" style="background: var(--danger); color: #fff;">❌ End</button>
+      </div>
+    </div>
+
+    <div class="viewport-area" id="viewportArea">
+      <video id="remoteVideo" class="remote-video" autoplay playsinline></video>
+      <audio id="remoteAudio" autoplay></audio>
+
+      <!-- Chat Drawer -->
+      <div class="drawer" id="chatDrawer">
+        <div class="drawer-header">
+          <span>💬 Live In-Session Chat</span>
+          <button id="closeChatBtn" style="background: none; border: none; color: #fff; cursor: pointer; font-size: 1.2rem;">&times;</button>
+        </div>
+        <div class="drawer-body" id="chatMessages">
+          <div class="chat-bubble partner">Session connected. You can now chat or control the remote partner.</div>
+        </div>
+        <div class="chat-input-area">
+          <input type="text" id="chatInput" class="input-box" placeholder="Type a message..." style="font-size: 0.85rem; padding: 0.5rem;">
+          <button id="btnSendChat" class="btn btn-primary" style="width: auto; padding: 0.5rem 0.85rem;">Send</button>
+        </div>
+      </div>
+
+      <!-- GPS Tracking & Interactive Leaflet Map Drawer -->
+      <div class="drawer" id="gpsDrawer" style="width: 400px; right: -410px;">
+        <div class="drawer-header">
+          <span>📍 Real-Time GPS Tracking Map</span>
+          <button id="closeGpsBtn" style="background: none; border: none; color: #fff; cursor: pointer; font-size: 1.2rem;">&times;</button>
+        </div>
+        <div class="drawer-body">
+          <div id="gpsStatus" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">Waiting for GPS fixes from host...</div>
+          <!-- Interactive Map Container -->
+          <div id="liveMapContainer" style="height: 220px; width: 100%; border-radius: 8px; border: 1px solid var(--border-color); background: #1e293b;"></div>
+          <div id="gpsCoordsList" style="display: flex; flex-direction: column; gap: 0.4rem; margin-top: 0.75rem; max-height: 120px; overflow-y: auto;"></div>
+          <div style="margin-top: 0.75rem; border-top: 1px solid var(--border-color); padding-top: 0.5rem;">
+            <div style="font-size: 0.8rem; font-weight: 600; color: #f87171; margin-bottom: 0.4rem;">🚨 SECURITY EVENTS ALERTS:</div>
+            <div id="alarmFeed" style="display: flex; flex-direction: column; gap: 0.35rem; font-size: 0.75rem; max-height: 100px; overflow-y: auto;"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
