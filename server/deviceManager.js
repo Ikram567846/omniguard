@@ -62,11 +62,26 @@ class DeviceManager {
     return pin;
   }
 
-  // Register device node
+  // Register device node (supports persistent deviceId & permanentPassword)
   registerDevice(ws, metadata = {}) {
-    const deviceId = this.generateDeviceId();
+    let deviceId = metadata.deviceId;
+    if (!deviceId || typeof deviceId !== 'string' || this.normalizeId(deviceId).length < 6) {
+      deviceId = this.generateDeviceId();
+    } else {
+      if (this.devices.has(deviceId)) {
+        const old = this.devices.get(deviceId);
+        if (old.socket && old.socket !== ws) {
+          try { old.socket.close(); } catch (e) {}
+        }
+      }
+    }
+
     const dynamicPassword = this.generateDynamicPassword();
-    const pairingPin = this.generatePairingPin();
+    const pairingPin = metadata.pairingPin || this.generatePairingPin();
+
+    if (metadata.permanentPassword) {
+      this.unattendedPasswords.set(this.normalizeId(deviceId), metadata.permanentPassword.toString().trim());
+    }
     const permanentPassword = this.unattendedPasswords.get(this.normalizeId(deviceId)) || null;
 
     const device = {

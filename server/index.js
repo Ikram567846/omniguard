@@ -35,6 +35,17 @@ if (httpsServer) {
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
 
+// Unified Commercial Client Portal Route
+app.get('/client', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/client.html'));
+});
+app.get('/customer', (req, res) => {
+  res.redirect('/client');
+});
+app.get('/host', (req, res) => {
+  res.redirect('/client');
+});
+
 // REST APIs
 app.get('/api/status', (req, res) => {
   res.json({
@@ -121,6 +132,17 @@ function handleWsConnection(ws) {
           const device = deviceManager.findDevice(registeredDeviceId);
           if (device && msg.data && msg.data.password) {
             device.password = msg.data.password.trim();
+          }
+          break;
+        }
+
+        case 'SET_UNATTENDED_PASSWORD': {
+          if (registeredDeviceId && msg.data && msg.data.password) {
+            deviceManager.setUnattendedPassword(registeredDeviceId, msg.data.password);
+            ws.send(JSON.stringify({
+              type: 'UNATTENDED_PASSWORD_SAVED',
+              data: { success: true, permanentPassword: msg.data.password.trim() }
+            }));
           }
           break;
         }
