@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OmniGuard - Host / Camera Node</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1e3a8a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body style="background: #090d16;">
@@ -117,6 +121,17 @@ Weekly Checklist:
       <div class="form-group">
         <label class="form-label">DYNAMIC ONE-TIME PASSWORD</label>
         <input type="text" id="myHostPassword" class="input-box" readonly value="------" style="font-size: 1.2rem; text-align: center; font-family: monospace;">
+      </div>
+
+      <!-- Permanent Unattended Password for Master 24/7 Access -->
+      <div class="form-group" style="background: rgba(30, 41, 59, 0.7); border: 1px solid #3b82f6; border-radius: 8px; padding: 0.85rem; margin-top: 1rem;">
+        <label class="form-label" style="color: #60a5fa; margin-bottom: 0.25rem;">🔒 পারমানেন্ট পাসওয়ার্ড (PERMANENT MASTER PASSWORD)</label>
+        <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 0.5rem;">মাস্টার সফটওয়্যার থেকে সবসময় কোনো অনুমতি ছাড়াই ২৪/৭ যুক্ত হতে একটি নির্দিষ্ট পাসওয়ার্ড দিন:</div>
+        <div style="display: flex; gap: 0.5rem;">
+          <input type="text" id="hostPermanentPasswordInput" class="input-box" placeholder="যেমন: 123456 বা আপনার পাসওয়ার্ড" style="font-size: 1rem; text-align: center; font-family: monospace;">
+          <button id="btnSaveHostPermanentPass" class="btn btn-primary" style="width: auto; padding: 0.5rem 1rem; white-space: nowrap;">💾 সেভ করুন</button>
+        </div>
+        <div id="hostPermPassSavedMsg" style="color: #34d399; font-size: 0.75rem; margin-top: 0.35rem; display: none;">✓ পারমানেন্ট পাসওয়ার্ড সংরক্ষিত হয়েছে!</div>
       </div>
 
       <div class="form-group">

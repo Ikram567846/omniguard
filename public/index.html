@@ -19,12 +19,11 @@
         <div style="font-size: 0.75rem; color: var(--text-muted);">Unified Remote Desktop & Smart Surveillance Hub</div>
       </div>
     </div>
-    <div style="display: flex; align-items: center; gap: 0.75rem;">
-      <span id="licenseBadge" class="badge" style="background: #6366f1; cursor: pointer;" title="Commercial License Status">🔑 Community Free</span>
+    <div style="display: flex; align-items: center; gap: 0.6rem;">
+      <span id="licenseBadge" class="badge" style="background: #6366f1; cursor: pointer;" title="Commercial License Status">👑 Master Admin</span>
       <span id="connectionBadge" class="badge">Connecting...</span>
-      <a href="customer.html" target="_blank" style="color: #38bdf8; font-size: 0.85rem; text-decoration: none; border: 1px solid #38bdf8; padding: 0.3rem 0.6rem; border-radius: 6px;">👤 Customer QuickSupport ↗</a>
-      <a href="grid.html" target="_blank" style="color: #10b981; font-size: 0.85rem; text-decoration: none; border: 1px solid #10b981; padding: 0.3rem 0.6rem; border-radius: 6px;">🔲 4-Way CCTV Grid ↗</a>
-      <a href="host.html" target="_blank" style="color: var(--accent); font-size: 0.85rem; text-decoration: none; border: 1px solid var(--accent); padding: 0.3rem 0.6rem; border-radius: 6px;">Open Camera / Host Node ↗</a>
+      <button id="btnCopyCustomerLink" class="btn btn-secondary" style="font-size: 0.8rem; padding: 0.35rem 0.75rem; border-color: #38bdf8; color: #38bdf8; width: auto; white-space: nowrap;" title="গ্রাহকের সাথে শেয়ার করার জন্য কাস্টমার লিংক কপি করুন">📋 কাস্টমার লিংক কপি</button>
+      <button id="btnToggleGridMode" class="btn btn-secondary" style="font-size: 0.8rem; padding: 0.35rem 0.75rem; border-color: #10b981; color: #10b981; width: auto; white-space: nowrap;">🔲 ৪-ক্যামেরা গ্রিড</button>
     </div>
   </header>
 
@@ -164,11 +163,85 @@
         </div>
 
         <div style="margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
-          <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.5rem;">QUICK ACCESS SHORTCUTS:</div>
+          <div style="font-size: 0.8rem; font-weight: 600; color: #38bdf8; margin-bottom: 0.35rem;">🔗 গ্রাহকদের শেয়ার করার ক্লায়েন্ট লিংক:</div>
           <div style="display: flex; gap: 0.5rem;">
-            <a href="grid.html" class="btn btn-secondary" style="font-size: 0.8rem; padding: 0.5rem; text-decoration: none;">🔲 4-Way Fleet Grid</a>
-            <a href="host.html" class="btn btn-secondary" style="font-size: 0.8rem; padding: 0.5rem; text-decoration: none;">📷 Camera Broadcaster</a>
+            <input type="text" id="directClientUrlInput" class="input-box" readonly style="font-size: 0.75rem; padding: 0.4rem; background: #0b1329;">
+            <button id="btnCopyDirectClientUrl" class="btn btn-secondary" style="width: auto; padding: 0.4rem 0.75rem; font-size: 0.75rem; white-space: nowrap;">কপি করুন</button>
           </div>
+          <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.35rem;">গ্রাহক যেকোনো মোবাইল বা পিসি থেকে এই লিংকে ঢুকলেই কাজ শুরু করতে পারবে।</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Integrated 4-Way CCTV Fleet Grid (Directly inside Master Suite) -->
+  <div id="cctvGridContainer" style="display: none; padding: 1rem; max-width: 1400px; margin: 0 auto; width: 100%;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+      <div style="font-weight: 700; color: #10b981; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">
+        <span>🔲</span> ৪-স্ক্রিন সিসিটিভি ফ্লিট গ্রিড (4-Way CCTV Fleet Monitor)
+      </div>
+      <button id="btnCloseGridMode" class="btn btn-secondary" style="width: auto; padding: 0.35rem 0.75rem; font-size: 0.8rem;">✕ ড্যাশবোর্ডে ফিরুন</button>
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; height: 75vh;">
+      
+      <!-- Grid Channel 1 -->
+      <div class="card" style="padding: 0; overflow: hidden; position: relative; background: #000; border: 1px solid #1e293b; display: flex; flex-direction: column;">
+        <div style="position: absolute; top: 0; left: 0; right: 0; background: rgba(15,23,42,0.85); padding: 0.4rem 0.6rem; display: flex; justify-content: space-between; font-size: 0.75rem; z-index: 10;">
+          <span style="font-weight: 700;">CH 1: ক্যামেরা ১</span>
+          <span id="gridBadge1" style="color: #94a3b8;">অফলাইন</span>
+        </div>
+        <video id="gridVid1" autoplay playsinline muted style="width: 100%; height: 100%; object-fit: cover;"></video>
+        <div id="gridForm1" style="position: absolute; inset: 0; background: rgba(15,23,42,0.92); display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 1.5rem; z-index: 5;">
+          <div style="font-size: 0.85rem; font-weight: 700; color: #38bdf8; margin-bottom: 0.5rem;">ক্যামেরা ১ কানেক্ট করুন</div>
+          <input type="text" id="gridId1" class="input-box" placeholder="ডিভাইস আইডি (৯ ডিজিট)" style="margin-bottom: 0.4rem; font-size: 0.8rem; padding: 0.4rem;">
+          <input type="password" id="gridPwd1" class="input-box" placeholder="পাসওয়ার্ড / পিন" style="margin-bottom: 0.5rem; font-size: 0.8rem; padding: 0.4rem;">
+          <button onclick="connectGridChannel(1)" class="btn btn-primary" style="font-size: 0.8rem; padding: 0.4rem;">কানেক্ট করুন</button>
+        </div>
+      </div>
+
+      <!-- Grid Channel 2 -->
+      <div class="card" style="padding: 0; overflow: hidden; position: relative; background: #000; border: 1px solid #1e293b; display: flex; flex-direction: column;">
+        <div style="position: absolute; top: 0; left: 0; right: 0; background: rgba(15,23,42,0.85); padding: 0.4rem 0.6rem; display: flex; justify-content: space-between; font-size: 0.75rem; z-index: 10;">
+          <span style="font-weight: 700;">CH 2: ক্যামেরা ২</span>
+          <span id="gridBadge2" style="color: #94a3b8;">অফলাইন</span>
+        </div>
+        <video id="gridVid2" autoplay playsinline muted style="width: 100%; height: 100%; object-fit: cover;"></video>
+        <div id="gridForm2" style="position: absolute; inset: 0; background: rgba(15,23,42,0.92); display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 1.5rem; z-index: 5;">
+          <div style="font-size: 0.85rem; font-weight: 700; color: #34d399; margin-bottom: 0.5rem;">ক্যামেরা ২ কানেক্ট করুন</div>
+          <input type="text" id="gridId2" class="input-box" placeholder="ডিভাইস আইডি (৯ ডিজিট)" style="margin-bottom: 0.4rem; font-size: 0.8rem; padding: 0.4rem;">
+          <input type="password" id="gridPwd2" class="input-box" placeholder="পাসওয়ার্ড / পিন" style="margin-bottom: 0.5rem; font-size: 0.8rem; padding: 0.4rem;">
+          <button onclick="connectGridChannel(2)" class="btn btn-primary" style="font-size: 0.8rem; padding: 0.4rem;">কানেক্ট করুন</button>
+        </div>
+      </div>
+
+      <!-- Grid Channel 3 -->
+      <div class="card" style="padding: 0; overflow: hidden; position: relative; background: #000; border: 1px solid #1e293b; display: flex; flex-direction: column;">
+        <div style="position: absolute; top: 0; left: 0; right: 0; background: rgba(15,23,42,0.85); padding: 0.4rem 0.6rem; display: flex; justify-content: space-between; font-size: 0.75rem; z-index: 10;">
+          <span style="font-weight: 700;">CH 3: ক্যামেরা ৩</span>
+          <span id="gridBadge3" style="color: #94a3b8;">অফলাইন</span>
+        </div>
+        <video id="gridVid3" autoplay playsinline muted style="width: 100%; height: 100%; object-fit: cover;"></video>
+        <div id="gridForm3" style="position: absolute; inset: 0; background: rgba(15,23,42,0.92); display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 1.5rem; z-index: 5;">
+          <div style="font-size: 0.85rem; font-weight: 700; color: #a78bfa; margin-bottom: 0.5rem;">ক্যামেরা ৩ কানেক্ট করুন</div>
+          <input type="text" id="gridId3" class="input-box" placeholder="ডিভাইস আইডি (৯ ডিজিট)" style="margin-bottom: 0.4rem; font-size: 0.8rem; padding: 0.4rem;">
+          <input type="password" id="gridPwd3" class="input-box" placeholder="পাসওয়ার্ড / পিন" style="margin-bottom: 0.5rem; font-size: 0.8rem; padding: 0.4rem;">
+          <button onclick="connectGridChannel(3)" class="btn btn-primary" style="font-size: 0.8rem; padding: 0.4rem;">কানেক্ট করুন</button>
+        </div>
+      </div>
+
+      <!-- Grid Channel 4 -->
+      <div class="card" style="padding: 0; overflow: hidden; position: relative; background: #000; border: 1px solid #1e293b; display: flex; flex-direction: column;">
+        <div style="position: absolute; top: 0; left: 0; right: 0; background: rgba(15,23,42,0.85); padding: 0.4rem 0.6rem; display: flex; justify-content: space-between; font-size: 0.75rem; z-index: 10;">
+          <span style="font-weight: 700;">CH 4: ক্যামেরা ৪</span>
+          <span id="gridBadge4" style="color: #94a3b8;">অফলাইন</span>
+        </div>
+        <video id="gridVid4" autoplay playsinline muted style="width: 100%; height: 100%; object-fit: cover;"></video>
+        <div id="gridForm4" style="position: absolute; inset: 0; background: rgba(15,23,42,0.92); display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 1.5rem; z-index: 5;">
+          <div style="font-size: 0.85rem; font-weight: 700; color: #f59e0b; margin-bottom: 0.5rem;">ক্যামেরা ৪ কানেক্ট করুন</div>
+          <input type="text" id="gridId4" class="input-box" placeholder="ডিভাইস আইডি (৯ ডিজিট)" style="margin-bottom: 0.4rem; font-size: 0.8rem; padding: 0.4rem;">
+          <input type="password" id="gridPwd4" class="input-box" placeholder="পাসওয়ার্ড / পিন" style="margin-bottom: 0.5rem; font-size: 0.8rem; padding: 0.4rem;">
+          <button onclick="connectGridChannel(4)" class="btn btn-primary" style="font-size: 0.8rem; padding: 0.4rem;">কানেক্ট করুন</button>
         </div>
       </div>
 

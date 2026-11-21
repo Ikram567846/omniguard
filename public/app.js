@@ -818,8 +818,131 @@ function renderAlarmAlert(alert) {
 // File Transfer trigger
 btnFileTransfer.addEventListener('click', () => fileInput.click());
 
+// --- Integrated Master Features: Customer Link Sharing & 4-Way CCTV Grid ---
+const btnCopyCustomerLink = document.getElementById('btnCopyCustomerLink');
+const btnToggleGridMode = document.getElementById('btnToggleGridMode');
+const btnCloseGridMode = document.getElementById('btnCloseGridMode');
+const cctvGridContainer = document.getElementById('cctvGridContainer');
+const directClientUrlInput = document.getElementById('directClientUrlInput');
+const btnCopyDirectClientUrl = document.getElementById('btnCopyDirectClientUrl');
+
+function copyCustomerClientLink() {
+  const url = `${window.location.origin}/client`;
+  navigator.clipboard.writeText(url).then(() => {
+    alert(`কাস্টমার লিংক সফলভাবে কপি হয়েছে!\n\n${url}\n\nএই লিংকটি আপনার ক্লায়েন্ট বা কাস্টমারকে দিন।`);
+  }).catch(() => {
+    prompt('নিচের লিংকটি কপি করে কাস্টমারকে দিন:', url);
+  });
+}
+
+if (btnCopyCustomerLink) {
+  btnCopyCustomerLink.addEventListener('click', copyCustomerClientLink);
+}
+if (btnCopyDirectClientUrl) {
+  btnCopyDirectClientUrl.addEventListener('click', copyCustomerClientLink);
+}
+
+if (btnToggleGridMode) {
+  btnToggleGridMode.addEventListener('click', () => {
+    mainDashboard.style.display = 'none';
+    cctvGridContainer.style.display = 'block';
+  });
+}
+
+if (btnCloseGridMode) {
+  btnCloseGridMode.addEventListener('click', () => {
+    cctvGridContainer.style.display = 'none';
+    mainDashboard.style.display = 'block';
+  });
+}
+
+// 4-Way Grid Channel Connector
+const gridChannels = {};
+window.connectGridChannel = function(chNum) {
+  const idEl = document.getElementById(`gridId${chNum}`);
+  const pwdEl = document.getElementById(`gridPwd${chNum}`);
+  const id = idEl.value.trim();
+  const pwd = pwdEl.value.trim();
+
+  if (!id || !pwd) {
+    alert('দয়া করে আইডি এবং পাসওয়ার্ড উভয়ই লিখুন।');
+    return;
+  }
+
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const gridWs = new WebSocket(`${protocol}//${window.location.host}`);
+  const badge = document.getElementById(`gridBadge${chNum}`);
+  const form = document.getElementById(`gridForm${chNum}`);
+  const vid = document.getElementById(`gridVid${chNum}`);
+
+  badge.textContent = 'Connecting...';
+  badge.style.color = '#f59e0b';
+
+  let pc = null;
+
+  gridWs.onopen = () => {
+    gridWs.send(JSON.stringify({
+      type: 'REGISTER',
+      data: { type: 'CONTROLLER', name: `Grid-Viewer-${chNum}` }
+    }));
+  };
+
+  gridWs.onmessage = async (e) => {
+    const msg = JSON.parse(e.data);
+
+    if (msg.type === 'REGISTERED') {
+      gridWs.send(JSON.stringify({
+        type: 'CONNECT_REQUEST',
+        data: { hostId: id, password: pwd, mode: 'CAMERA_SURVEILLANCE' }
+      }));
+    } else if (msg.type === 'CONNECT_ACCEPTED') {
+      form.style.display = 'none';
+      badge.textContent = `🟢 LIVE (${id})`;
+      badge.style.color = '#10b981';
+
+      pc = new RTCPeerConnection(rtcConfig);
+      pc.addTransceiver('video', { direction: 'recvonly' });
+
+      pc.ontrack = (event) => {
+        if (event.track.kind === 'video') {
+          vid.srcObject = event.streams[0];
+        }
+      };
+
+      pc.onicecandidate = (event) => {
+        if (event.candidate) {
+          gridWs.send(JSON.stringify({
+            type: 'ICE_CANDIDATE',
+            data: { targetId: id, candidate: event.candidate }
+          }));
+        }
+      };
+
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      gridWs.send(JSON.stringify({
+        type: 'OFFER',
+        data: { targetId: id, sdp: offer }
+      }));
+    } else if (msg.type === 'ANSWER' && pc) {
+      await pc.setRemoteDescription(new RTCSessionDescription(msg.data.sdp));
+    } else if (msg.type === 'ICE_CANDIDATE' && pc && msg.data.candidate) {
+      await pc.addIceCandidate(new RTCIceCandidate(msg.data.candidate));
+    } else if (msg.type === 'CONNECT_ERROR') {
+      alert(`CH ${chNum} ত্রুটি: ${msg.error}`);
+      badge.textContent = 'Failed';
+      badge.style.color = '#ef4444';
+    }
+  };
+
+  gridChannels[chNum] = { gridWs, pc };
+};
+
 // Start Signaling & Load Fleet on DOM Ready
 window.addEventListener('DOMContentLoaded', () => {
   initSignaling();
   renderFleetList();
+  if (directClientUrlInput) {
+    directClientUrlInput.value = `${window.location.origin}/client`;
+  }
 });

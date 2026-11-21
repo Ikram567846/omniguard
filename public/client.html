@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>OmniGuard Client - রিমোট সাপোর্ট ও স্মার্ট সিসিটিভি</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      background: #080d1a;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1rem;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    .client-wrapper {
+      width: 100%;
+      max-width: 520px;
+      margin: auto;
+    }
+    .nav-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      background: #0f172a;
+      padding: 0.35rem;
+      border-radius: 12px;
+      border: 1px solid #1e293b;
+      margin-bottom: 1rem;
+    }
+    .nav-tab {
+      padding: 0.75rem;
+      text-align: center;
+      border-radius: 8px;
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    .nav-tab.active {
+      background: #2563eb;
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    .client-card {
+      background: #111c33;
+      border: 1px solid #1e2e4f;
+      border-radius: 14px;
+      padding: 1.5rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+    .id-display-box {
+      background: #090e1a;
+      border: 1px dashed #3b82f6;
+      border-radius: 10px;
+      padding: 1rem;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    .id-number {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: 0.15em;
+      color: #38bdf8;
+      font-family: monospace;
+    }
+    .copy-btn {
+      background: #1e293b;
+      color: #94a3b8;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      padding: 0.3rem 0.75rem;
+      font-size: 0.75rem;
+      cursor: pointer;
+      margin-top: 0.35rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .copy-btn:hover {
+      background: #334155;
+      color: #fff;
+    }
+    .camera-preview-box {
+      width: 100%;
+      height: 280px;
+      background: #000;
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+      border: 1px solid #1e293b;
+      margin-bottom: 1rem;
+    }
+    .camera-preview-box video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .active-session-card {
+      display: none;
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid #ef4444;
+      border-radius: 10px;
+      padding: 1.25rem;
+      margin-top: 1rem;
+      text-align: center;
+    }
+    .quick-pill {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 9999px;
+      background: #1e293b;
+      color: #94a3b8;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="client-wrapper">
+    
+    <!-- Top Client Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding: 0 0.25rem;">
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <span style="font-size: 1.6rem;">🛡️</span>
+        <div>
+          <h1 style="font-size: 1.15rem; font-weight: 700; color: #fff; margin: 0;">OmniGuard Client</h1>
+          <div style="font-size: 0.75rem; color: #94a3b8;">গ্রাহক ও ডিভাইস নোড</div>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <span id="clientStatusBadge" class="badge">🔴 সংযোগ হচ্ছে...</span>
+        <span id="batteryIndicator" class="quick-pill" style="display: none;">🔋 --%</span>
+      </div>
+    </div>
+
+    <!-- Mode Switcher Tabs -->
+    <div class="nav-tabs">
+      <button id="tabBtnSupport" class="nav-tab active" onclick="switchTab('support')">
+        🖥️ পিসি সহায়তা (Support)
+      </button>
+      <button id="tabBtnCctv" class="nav-tab" onclick="switchTab('cctv')">
+        📹 স্মার্ট সিসিটিভি (CCTV)
+      </button>
+    </div>
+
+    <!-- TAB 1: REMOTE PC SUPPORT (UltraViewer Mode) -->
+    <div id="tabContentSupport" class="tab-content active">
+      <div class="client-card">
+        <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 1.25rem; text-align: center;">
+          আপনার কম্পিউটার দূর থেকে মেরামত বা সহায়তার জন্য আপনার টেকনিশিয়ানকে নিচের তথ্য দিন:
+        </p>
+
+        <!-- YOUR ID BOX -->
+        <div class="id-display-box">
+          <div style="font-size: 0.75rem; font-weight: 700; color: #64748b; letter-spacing: 0.05em; margin-bottom: 0.25rem;">YOUR ID (আপনার আইডি)</div>
+          <div id="custDeviceId" class="id-number">--- --- ---</div>
+          <button id="btnCopyId" class="copy-btn">📋 আইডি কপি করুন</button>
+        </div>
+
+        <!-- DYNAMIC PASSWORD & EASY PIN -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem;">
+          <div style="background: #090e1a; border: 1px solid #1e293b; border-radius: 8px; padding: 0.75rem; text-align: center;">
+            <div style="font-size: 0.7rem; color: #64748b; font-weight: 600; margin-bottom: 0.25rem;">পাসওয়ার্ড (PASSWORD)</div>
+            <div id="custPassword" style="font-family: monospace; font-size: 1.25rem; font-weight: 700; color: #34d399;">------</div>
+            <button id="btnRefreshPass" class="copy-btn" style="padding: 0.2rem 0.5rem; font-size: 0.7rem;">🔄 নতুন</button>
+          </div>
+          <div style="background: #090e1a; border: 1px solid #1e293b; border-radius: 8px; padding: 0.75rem; text-align: center;">
+            <div style="font-size: 0.7rem; color: #64748b; font-weight: 600; margin-bottom: 0.25rem;">সহজ পিন (EASY PIN)</div>
+            <div id="custPairingPin" style="font-family: monospace; font-size: 1.25rem; font-weight: 700; color: #f59e0b;">------</div>
+            <button id="btnCopyPin" class="copy-btn" style="padding: 0.2rem 0.5rem; font-size: 0.7rem;">📋 পিন কপি</button>
+          </div>
+        </div>
+
+        <!-- INCOMING REQUEST APPROVAL CARD -->
+        <div id="incomingRequestBox" style="display: none; background: rgba(59, 130, 246, 0.15); border: 1px solid #3b82f6; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; text-align: center;">
+          <div style="font-size: 0.9rem; font-weight: 700; color: #60a5fa; margin-bottom: 0.35rem;">🔔 সংযোগের অনুরোধ এসেছে!</div>
+          <div id="incomingAgentInfo" style="font-size: 0.8rem; color: #e2e8f0; margin-bottom: 0.75rem;">টেকনিশিয়ান আপনার স্ক্রিন দেখতে চাচ্ছেন।</div>
+          <div style="display: flex; gap: 0.5rem;">
+            <button id="btnAcceptScreenShare" class="btn btn-primary" style="flex: 2; padding: 0.6rem; font-size: 0.85rem; font-weight: 700;">🖥️ অনুমোদন ও স্ক্রিন শেয়ার</button>
+            <button id="btnRejectSession" class="btn btn-danger" style="flex: 1; padding: 0.6rem; font-size: 0.85rem;">প্রত্যাখ্যান</button>
+          </div>
+        </div>
+
+        <!-- ACTIVE SESSION CARD -->
+        <div id="activeSessionBox" class="active-session-card">
+          <div style="font-size: 1rem; font-weight: 700; color: #ef4444; margin-bottom: 0.35rem;">🔴 রিমোট সেশন চলছে!</div>
+          <div id="sessionAgentInfo" style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 0.75rem;">টেকনিশিয়ান সংযুক্ত আছেন।</div>
+          <label style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; font-size: 0.8rem; color: #94a3b8; margin-bottom: 1rem; cursor: pointer;">
+            <input type="checkbox" id="chkAllowControl" checked> মাউস ও কীবোর্ড নিয়ন্ত্রণ অনুমতি চালু
+          </label>
+          <button id="btnDisconnectSession" class="btn btn-danger" style="width: 100%; padding: 0.75rem; font-size: 0.9rem; font-weight: 700;">
+            ⛔ সংযোগ বিচ্ছিন্ন করুন (End Session)
+          </button>
+        </div>
+
+        <!-- COMMERCIAL LICENSE ACTIVATION -->
+        <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #1e293b;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <span style="font-size: 0.75rem; font-weight: 700; color: #64748b;">🔑 কমার্শিয়াল লাইসেন্স</span>
+            <span id="custLicenseBadge" class="quick-pill" style="color: #818cf8;">Community Free</span>
+          </div>
+          <div style="display: flex; gap: 0.5rem;">
+            <input type="text" id="custLicenseInput" class="input-box" placeholder="OMNI-PRO-XXXX-XXXX" style="font-size: 0.8rem; text-transform: uppercase;">
+            <button id="btnActivateCustLicense" class="btn btn-primary" style="padding: 0.4rem 0.85rem; font-size: 0.8rem; width: auto; white-space: nowrap;">সক্রিয় করুন</button>
+          </div>
+          <div id="custLicenseMsg" style="font-size: 0.7rem; color: #64748b; margin-top: 0.25rem;"></div>
+        </div>
+
+        <!-- Hardware Agent Status -->
+        <div style="margin-top: 0.75rem; font-size: 0.75rem; color: #64748b; text-align: center;">
+          <span id="agentDot" style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #64748b; margin-right: 4px;"></span>
+          <span id="agentText">Win32 ইনপুট এজেন্ট চেক হচ্ছে...</span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TAB 2: SMART CCTV CAMERA (TrackView Mode) -->
+    <div id="tabContentCctv" class="tab-content">
+      <div class="client-card">
+        
+        <!-- Live Camera View -->
+        <div class="camera-preview-box">
+          <video id="cctvVideo" autoplay playsinline muted></video>
+          <div style="position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.65); padding: 0.25rem 0.6rem; border-radius: 6px; font-size: 0.75rem; color: #34d399; font-weight: 700;">
+            ● REC LIVE
+          </div>
+          <div id="cctvPinBanner" style="position: absolute; top: 10px; right: 10px; background: rgba(15,23,42,0.85); padding: 0.25rem 0.6rem; border-radius: 6px; font-size: 0.75rem; color: #f59e0b; font-family: monospace; font-weight: 700;">
+            PIN: ------
+          </div>
+          <div style="position: absolute; bottom: 10px; left: 10px; right: 10px; display: flex; justify-content: space-between; align-items: center;">
+            <button id="btnFlipCamera" class="btn btn-secondary" style="padding: 0.35rem 0.7rem; font-size: 0.75rem; background: rgba(0,0,0,0.7); width: auto;">
+              🔄 ক্যামেরা পাল্টান
+            </button>
+            <button id="btnToggleTorch" class="btn btn-secondary" style="padding: 0.35rem 0.7rem; font-size: 0.75rem; background: rgba(0,0,0,0.7); width: auto;">
+              🔦 টর্চ
+            </button>
+          </div>
+        </div>
+
+        <!-- CAMERA CONNECT INFO -->
+        <div style="background: #090e1a; border: 1px solid #1e293b; border-radius: 8px; padding: 0.75rem; text-align: center; margin-bottom: 1rem;">
+          <div style="font-size: 0.75rem; color: #64748b;">মাস্টার পিসি থেকে কানেক্ট করার তথ্য:</div>
+          <div style="display: flex; justify-content: space-around; align-items: center; margin-top: 0.35rem;">
+            <div>আইডি: <strong id="cctvIdDisplay" style="color: #38bdf8; font-family: monospace;">--- --- ---</strong></div>
+            <div>পিন: <strong id="cctvPinDisplay" style="color: #f59e0b; font-family: monospace;">------</strong></div>
+          </div>
+        </div>
+
+        <!-- 4-TIER STEALTH DISGUISE CONTROLS -->
+        <div style="margin-bottom: 1rem;">
+          <div style="font-size: 0.75rem; font-weight: 700; color: #64748b; margin-bottom: 0.5rem;">🕵️ ছদ্মবেশ মোড (STEALTH DISGUISE)</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+            <button id="btnDisguiseCalc" class="btn btn-secondary" style="font-size: 0.8rem; padding: 0.6rem;">
+              🔢 ক্যালকুলেটর (2026=)
+            </button>
+            <button id="btnDisguiseClock" class="btn btn-secondary" style="font-size: 0.8rem; padding: 0.6rem;">
+              🕒 ডিজিটাল ঘড়ি
+            </button>
+          </div>
+          <div style="font-size: 0.7rem; color: #475569; text-align: center; margin-top: 0.35rem;">
+            ক্যালকুলেটর মোডে গোপন পিন <strong>2026=</strong> চাপলেই ক্যামেরা ফিরে আসবে।
+          </div>
+        </div>
+
+        <!-- SENSORS TELEMETRY -->
+        <div style="background: #090e1a; border: 1px solid #1e293b; border-radius: 8px; padding: 0.75rem;">
+          <div style="font-size: 0.75rem; font-weight: 700; color: #64748b; margin-bottom: 0.35rem;">📡 এআই এজ সেন্সর</div>
+          <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #94a3b8;">
+            <span>👁️ মোশন সেন্সর: <strong id="motionStatus" style="color: #10b981;">সক্রিয়</strong></span>
+            <span>🎤 সাউন্ড অ্যালার্ম: <strong id="soundStatus" style="color: #10b981;">সক্রিয়</strong></span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- STEALTH OVERLAYS (Integrated in Client) -->
+  <!-- 1. Digital Clock Black Screen -->
+  <div id="clockOverlay" class="disguise-overlay" style="display: none; position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer;">
+    <div id="liveClockText" style="font-family: monospace; font-size: 3.5rem; color: #333;">12:00:00</div>
+    <div style="position: absolute; bottom: 30px; font-size: 0.75rem; color: #222;">Double-tap anywhere to exit</div>
+  </div>
+
+  <!-- 2. Secret Interactive Calculator Disguise -->
+  <div id="calcOverlay" class="disguise-overlay" style="display: none; position: fixed; inset: 0; background: #121212; z-index: 9999; display: flex; align-items: center; justify-content: center;">
+    <div class="calculator-container" style="width: 100%; max-width: 320px; background: #1e1e1e; padding: 1.25rem; border-radius: 16px;">
+      <div style="display: flex; justify-content: space-between; color: #94a3b8; font-size: 0.85rem; margin-bottom: 0.5rem;">
+        <span>Calculator</span>
+        <span style="font-size: 0.7rem; color: #555;">v2.4</span>
+      </div>
+      <div id="calcDisplay" class="calc-display" style="background: #000; color: #fff; font-family: monospace; font-size: 2rem; padding: 0.75rem; text-align: right; border-radius: 8px; margin-bottom: 0.75rem;">0</div>
+      <div class="calc-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem;">
+        <button class="calc-btn action" data-val="C">C</button>
+        <button class="calc-btn action" data-val="+/-">&plusmn;</button>
+        <button class="calc-btn action" data-val="%">%</button>
+        <button class="calc-btn op" data-val="/">&divide;</button>
+        <button class="calc-btn" data-val="7">7</button>
+        <button class="calc-btn" data-val="8">8</button>
+        <button class="calc-btn" data-val="9">9</button>
+        <button class="calc-btn op" data-val="*">&times;</button>
+        <button class="calc-btn" data-val="4">4</button>
+        <button class="calc-btn" data-val="5">5</button>
+        <button class="calc-btn" data-val="6">6</button>
+        <button class="calc-btn op" data-val="-">&minus;</button>
+        <button class="calc-btn" data-val="1">1</button>
+        <button class="calc-btn" data-val="2">2</button>
+        <button class="calc-btn" data-val="3">3</button>
+        <button class="calc-btn op" data-val="+">+</button>
+        <button class="calc-btn" style="grid-column: span 2;" data-val="0">0</button>
+        <button class="calc-btn" data-val=".">.</button>
+        <button class="calc-btn op" data-val="=">=</button>
+      </div>
+      <div style="font-size: 0.7rem; color: #444; text-align: center; margin-top: 0.75rem;">
+        গোপন কোড <strong>2026=</strong> চাপলেই আনলক হবে
+      </div>
+    </div>
+  </div>
+
+  <script src="client.js"></script>
+</body>
+</html>

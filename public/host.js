@@ -20,6 +20,9 @@ const hostStatusBadge = document.getElementById('hostStatusBadge');
 const myHostIdEl = document.getElementById('myHostId');
 const myPairingPinEl = document.getElementById('myPairingPin');
 const myHostPasswordEl = document.getElementById('myHostPassword');
+const hostPermanentPasswordInput = document.getElementById('hostPermanentPasswordInput');
+const btnSaveHostPermanentPass = document.getElementById('btnSaveHostPermanentPass');
+const hostPermPassSavedMsg = document.getElementById('hostPermPassSavedMsg');
 const batteryStatusIndicator = document.getElementById('batteryStatusIndicator');
 
 const btnStartScreen = document.getElementById('btnStartScreen');
@@ -56,9 +59,16 @@ function initHostSignaling() {
   socket.onopen = () => {
     hostStatusBadge.textContent = 'Standby (Ready)';
     hostStatusBadge.classList.add('online');
+    const savedId = localStorage.getItem('omniguard_host_device_id');
+    const savedPermPwd = localStorage.getItem('omniguard_host_perm_pwd');
     socket.send(JSON.stringify({
       type: 'REGISTER',
-      data: { type: 'HOST', name: 'Security-Node' }
+      data: {
+        type: 'HOST',
+        name: 'Security-Node',
+        deviceId: savedId || undefined,
+        permanentPassword: savedPermPwd || undefined
+      }
     }));
   };
 
@@ -69,9 +79,13 @@ function initHostSignaling() {
       case 'REGISTERED':
         myDeviceId = msg.data.deviceId;
         myPairingPin = msg.data.pairingPin;
+        localStorage.setItem('omniguard_host_device_id', myDeviceId);
         myHostIdEl.textContent = msg.data.deviceId;
         if (myPairingPinEl) myPairingPinEl.textContent = msg.data.pairingPin;
         myHostPasswordEl.value = msg.data.password;
+        if (hostPermanentPasswordInput && (msg.data.permanentPassword || localStorage.getItem('omniguard_host_perm_pwd'))) {
+          hostPermanentPasswordInput.value = msg.data.permanentPassword || localStorage.getItem('omniguard_host_perm_pwd');
+        }
         initBatteryTelemetry();
         requestScreenWakeLock();
         break;
@@ -544,6 +558,28 @@ if (btnLaunchNotepad) {
 if (btnExitNotepad) {
   btnExitNotepad.addEventListener('click', () => {
     notepadDisguise.style.display = 'none';
+  });
+}
+
+// Permanent Password Save Handler
+if (btnSaveHostPermanentPass) {
+  btnSaveHostPermanentPass.addEventListener('click', () => {
+    const val = (hostPermanentPasswordInput.value || '').trim();
+    if (!val) {
+      alert('দয়া করে একটি পারমানেন্ট পাসওয়ার্ড লিখুন।');
+      return;
+    }
+    localStorage.setItem('omniguard_host_perm_pwd', val);
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify({
+        type: 'SET_UNATTENDED_PASSWORD',
+        data: { password: val }
+      }));
+    }
+    if (hostPermPassSavedMsg) {
+      hostPermPassSavedMsg.style.display = 'block';
+      setTimeout(() => { hostPermPassSavedMsg.style.display = 'none'; }, 3000);
+    }
   });
 }
 

@@ -172,6 +172,12 @@
         return;
       }
 
+      // Persist permanently for auto-reconnect
+      try {
+        localStorage.setItem(`grid_ch${chNum}_id`, id);
+        localStorage.setItem(`grid_ch${chNum}_pwd`, pwd);
+      } catch (e) {}
+
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
       const ws = new WebSocket(`${protocol}//${window.location.host}`);
       
@@ -242,6 +248,27 @@
 
       channels[chNum] = { ws, pc };
     }
+
+    // Auto-restore and Auto-connect saved permanent cameras on grid load
+    window.addEventListener('DOMContentLoaded', () => {
+      for (let ch = 1; ch <= 4; ch++) {
+        try {
+          const savedId = localStorage.getItem(`grid_ch${ch}_id`);
+          const savedPwd = localStorage.getItem(`grid_ch${ch}_pwd`);
+          if (savedId) {
+            const idInput = document.getElementById(`id${ch}`);
+            if (idInput) idInput.value = savedId;
+          }
+          if (savedPwd) {
+            const pwdInput = document.getElementById(`pwd${ch}`);
+            if (pwdInput) pwdInput.value = savedPwd;
+          }
+          if (savedId && savedPwd) {
+            setTimeout(() => { connectChannel(ch); }, ch * 400);
+          }
+        } catch (e) {}
+      }
+    });
   </script>
 </body>
 </html>
