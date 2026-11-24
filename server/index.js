@@ -260,6 +260,30 @@ function handleWsConnection(ws) {
           break;
         }
 
+        case 'SCREEN_FRAME':
+        case 'INPUT':
+        case 'RELAY_INPUT':
+        case 'START_STREAM':
+        case 'STOP_STREAM':
+        case 'STREAM_REQUEST':
+        case 'STREAM_ACCEPTED':
+        case 'TUNNEL_DATA': {
+          const targetId = (msg.data && msg.data.targetId) || msg.targetId;
+          if (targetId) {
+            const target = deviceManager.findDevice(targetId);
+            if (target && target.socket && target.socket.readyState === WebSocket.OPEN) {
+              target.socket.send(JSON.stringify({
+                type: msg.type,
+                data: {
+                  ...(msg.data || {}),
+                  fromId: registeredDeviceId
+                }
+              }));
+            }
+          }
+          break;
+        }
+
         case 'TOGGLE_TORCH': {
           const { targetId } = msg.data;
           const target = deviceManager.findDevice(targetId);
