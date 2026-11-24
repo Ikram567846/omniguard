@@ -65,8 +65,19 @@ function createStandbyStream(text = 'Awaiting Screen Share...') {
 }
 
 function initSignaling() {
-  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-  socket = new WebSocket(`${protocol}//${window.location.host}`);
+  const isLocalHost = (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost');
+  const wsUrl = isLocalHost 
+    ? 'wss://omniguard-production-46e7db32.up.railway.app' 
+    : `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}`;
+
+  try {
+    socket = new WebSocket(wsUrl);
+  } catch (err) {
+    clientStatusBadge.classList.remove('online');
+    clientStatusText.textContent = 'ত্রুটি (পুনঃচেষ্টা হচ্ছে...)';
+    setTimeout(initSignaling, 3000);
+    return;
+  }
 
   socket.onopen = () => {
     clientStatusBadge.classList.add('online');
@@ -79,45 +90,49 @@ function initSignaling() {
   };
 
   socket.onmessage = async (event) => {
-    const msg = JSON.parse(event.data);
+    try {
+      const msg = JSON.parse(event.data);
 
-    switch (msg.type) {
-      case 'REGISTERED':
-        custDeviceId.textContent = msg.data.deviceId;
-        if (custPairingPin) custPairingPin.textContent = msg.data.pairingPin;
-        custPassword.value = msg.data.password;
-        break;
+      switch (msg.type) {
+        case 'REGISTERED':
+          custDeviceId.textContent = msg.data.deviceId;
+          if (custPairingPin) custPairingPin.textContent = msg.data.pairingPin;
+          custPassword.value = msg.data.password;
+          break;
 
-      case 'INCOMING_CONNECTION':
-        currentSessionId = msg.data.sessionId;
-        activeControllerId = msg.data.controllerId;
-        pendingSessionMode = msg.data.mode || 'FULL_CONTROL';
+        case 'INCOMING_CONNECTION':
+          currentSessionId = msg.data.sessionId;
+          activeControllerId = msg.data.controllerId;
+          pendingSessionMode = msg.data.mode || 'FULL_CONTROL';
 
-        // Show prompt to user
-        if (incomingRequestBox) {
-          incomingRequestBox.style.display = 'block';
-          incomingAgentInfo.textContent = `টেকনিশিয়ান (${activeControllerId}) আপনার স্ক্রিন দেখতে অনুরোধ করেছেন।`;
-        }
-        break;
-
-      case 'OFFER':
-        await handleOffer(msg.data.fromId, msg.data.sdp);
-        break;
-
-      case 'ICE_CANDIDATE':
-        if (peerConnection && msg.data.candidate) {
-          try {
-            await peerConnection.addIceCandidate(new RTCIceCandidate(msg.data.candidate));
-          } catch (e) {
-            console.error('ICE candidate error:', e);
+          // Show prompt to user
+          if (incomingRequestBox) {
+            incomingRequestBox.style.display = 'block';
+            incomingAgentInfo.textContent = `টেকনিশিয়ান (${activeControllerId}) আপনার স্ক্রিন দেখতে অনুরোধ করেছেন।`;
           }
-        }
-        break;
+          break;
 
-      case 'SESSION_ENDED':
-        endSession();
-        alert('টেকনিশিয়ান সেশন সমাপ্ত করেছেন।');
-        break;
+        case 'OFFER':
+          await handleOffer(msg.data.fromId, msg.data.sdp);
+          break;
+
+        case 'ICE_CANDIDATE':
+          if (peerConnection && msg.data.candidate) {
+            try {
+              await peerConnection.addIceCandidate(new RTCIceCandidate(msg.data.candidate));
+            } catch (e) {
+              console.error('ICE candidate error:', e);
+            }
+          }
+          break;
+
+        case 'SESSION_ENDED':
+          endSession();
+          alert('টেকনিশিয়ান সেশন সমাপ্ত করেছেন।');
+          break;
+      }
+    } catch (e) {
+      console.error('Signaling parse error:', e);
     }
   };
 
@@ -145,12 +160,24 @@ async function handleOffer(controllerId, sdp) {
         if (!chkAllowControl.checked) return;
         try {
           const payload = JSON.parse(e.data);
-          // If local native injection helper is running
-          fetch('http://localhost:5050/inject', {
+          
+          // Determine local injection URL (same-origin when on 127.0.0.1)
+          const isLocal = (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost');
+          const injectUrl = isLocal ? '/inject' : 'http://127.0.0.1:5050/inject';
+
+          fetch(injectUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
-          }).catch(() => {});
+          }).catch(() => {
+            // Fallback to relaying via cloud WebSocket if local fetch fails
+            if (socket && socket.readyState === WebSocket.OPEN) {
+              socket.send(JSON.stringify({
+                type: 'RELAY_INPUT',
+                data: payload
+              }));
+            }
+          });
         } catch (_) {}
       };
     };
@@ -195,7 +222,7 @@ if (btnAcceptScreenShare) {
             audio: true
           });
         } catch (screenErr) {
-          console.warn('Screen capture cancelled or unavailable:', screenErr);
+          console.warn('Screen capture cancelled or fallback:', screenErr);
           localStream = await navigator.mediaDevices.getUserMedia({
             video: true,
             audio: true
